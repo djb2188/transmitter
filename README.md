@@ -33,7 +33,7 @@ For each upstream project, there is a single URL endpoint; in turn, that endpoin
 
 **Setting up routes** — the set of routes (endpoints and handler functions for them) can be configured in `main.py`.
 
-**Mapping REDCap projects of handlers** — Two options:
+**Mapping REDCap projects of handlers** — Two options:
 
 * 1-to-1: A single handler can be dedicated to a single REDCap project
 * 1-to-many: A handler can be configured to handle messages from multiple REDCap projects. This can be done via the `compose_handler` pattern, which takes a REDCap environment string, a PID, and returns a handler function. See the `aou_handler` module.
