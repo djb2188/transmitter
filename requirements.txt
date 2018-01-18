@@ -1,0 +1,5 @@
+git+https://github.com/wcmc-research-informatics/metaphor/#egg=metaphor
+git+https://github.com/wcmc-research-informatics/redcaplib/#egg=redcaplib
+git+https://github.com/wcmc-research-informatics/pymysqlwrapper/#egg=pymysqlwrapper
+git+https://github.com/wcmc-research-informatics/jiralib/#egg=jiralib
+
