@@ -48,3 +48,22 @@ def run_workflow_chain(request, chain):
   log.info('Workflow chain done. Exiting.')
   return x
 
+def imux_handlers(handler1, handler2):
+  '''imux (aka inverse multiplex), takes two handlers,
+  and returns a single handler. (Recall that a handler
+  takes a single request and returns a single response.)'''
+  def h(req):
+    rslt1 = handler1(req)
+    print str(rslt1)
+    rslt2 = handler2(req)
+    print str(rslt2)
+    # Return 200 if both returned 200; else first non-200
+    # status is what gets returned.
+    if rslt1.get('status') == 200 && rslt2.get('status') == 200:
+      return {'status': 200}
+    else if rslt1.get('status') != 200:
+      return {'status': rslt1.get('status')}
+    else:
+      return {'status': rslt2.get('status')}
+  return h
+

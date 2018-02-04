@@ -73,7 +73,7 @@ def go(request):
                         + det_msg['project_id']
                         + ') does not match what handler (' 
                         + ') expects (' + project_id + ')') 
-    # Call REDCap API and retrieve recrod.
+    # Call REDCap API and retrieve record.
     record_id = det_msg['record']
     rcd = redcaplib.get_full_record(request.get('redcap-spec'), int(record_id))
     log.info('Retrieved full record from REDCap API for record id of: [' + record_id + ']')

@@ -166,15 +166,16 @@ def transition_jira_ticket(result):
   msg = 'ticket {} transition result: {}'.format(ticket_id, transition_rslt)
   if transition_rslt == 204: log.info(msg)
   else: log.error(msg)
+  # Transitioning feature pending.
   # Set assignee -- after transitions, assignee has changed.
-  jira_user = aou_config.get(env_tag).get('jira-user')
-  log.info('About to set ticket {} to assignee of {}.'\
-           ''.format(ticket_id, jira_user))
-  assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
-  if assignee_rslt.get('status') != 204:
-    raise Exception('Failed to set ticket {} to assignee {}.'\
-                    ''.format(ticket_id, jira_user))
-  else: log.info('assignee update was a success.')
+  #jira_user = aou_config.get(env_tag).get('jira-user')
+  #log.info('About to set ticket {} to assignee of {}.'\
+  #         ''.format(ticket_id, jira_user))
+  #assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
+  #if assignee_rslt.get('status') != 204:
+  #  raise Exception('Failed to set ticket {} to assignee {}.'\
+  #                  ''.format(ticket_id, jira_user))
+  #else: log.info('assignee update was a success.')
   try:
     ks.send_email(aou_config.get(env_tag).get('jira-ping-from-email')
         ,aou_config.get(env_tag).get('jira-ping-to-email')
