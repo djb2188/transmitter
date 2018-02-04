@@ -4,27 +4,29 @@ import kickshaws as ks
 from common import *
 
 '''
-RACIE Legacy Handle: route to legacy service.
+RACIE Legacy Handler: route to legacy service.
 '''
 
 __all__ = ['handle']
+
+racie_legacy_url = 'http://localhost:80/index/'
 
 log = ks.create_logger(get_log_filepath(), __name__)
 
 def handle(req):
   '''Route to RACIE Legacy service. Assumes we're always POSTing.'''
   log.info('in')
-  url = 'http://localhost:80/index/' 
   status = -1
   try:
-    pyld = (req.get('data', ''))
-    log.info('About to call RACIE Legacy with this payload: {}'.format(pyld))
-    # Note that the data arg below can be a string; will not be modified.
-    # This is what we want since we're just handing off the payload from
-    # the incoming request.
-    rslt = requests.post(url, data=pyld) 
+    raw_data = (req.get('data', ''))
+    log.info('DET payload from REDCap: {}'.format(raw_data))
+    log.info('About to call RACIE Legacy...')
+    outgoing_data = rc.parse_det_payload(raw_data)
+    rslt = requests.post(racie_legacy_url, data=outgoing_data)
     status = rslt.status_code
-    log.info('Result of RACIE Legacy call: {} -- .'.format(status))
+    msg = rslt.text
+    log.info('Result of RACIE Legacy call: status is {}; message is {}.'\
+             ''.format(status, msg))
     log.info('out')
     return {'status': status}
   except Exception, ex:
