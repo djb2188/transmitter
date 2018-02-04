@@ -2,6 +2,7 @@ import requests
 import traceback
 import kickshaws as ks
 from common import *
+import redcaplib as rc
 
 '''
 RACIE Legacy Handler: route to legacy service.
