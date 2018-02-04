@@ -1,13 +1,15 @@
-from kickshaws import *
-import common
 import requests
 import traceback
+import kickshaws as ks
+from common import *
 
 '''
 RACIE Legacy Handle: route to legacy service.
 '''
 
 __all__ = ['handle']
+
+log = ks.create_logger(get_log_filepath(), __name__)
 
 def handle(req):
   '''Route to RACIE Legacy service. Assumes we're always POSTing.'''

@@ -59,9 +59,9 @@ def imux_handlers(handler1, handler2):
     print str(rslt2)
     # Return 200 if both returned 200; else first non-200
     # status is what gets returned.
-    if rslt1.get('status') == 200 && rslt2.get('status') == 200:
+    if rslt1.get('status') == 200 and rslt2.get('status') == 200:
       return {'status': 200}
-    else if rslt1.get('status') != 200:
+    elif rslt1.get('status') != 200:
       return {'status': rslt1.get('status')}
     else:
       return {'status': rslt2.get('status')}

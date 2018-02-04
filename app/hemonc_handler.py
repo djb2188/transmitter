@@ -22,14 +22,6 @@ def _handle(redcap_env, project_id, req):
   log.info('This handler does not do anything yet.')
   log.info('out')
   return {'status': 200} 
-  except Exception, e:
-    log.error(traceback.format_exc())
-    ks.send_email(study_cfg[env_tag]['from-email']
-                 ,study_cfg[env_tag]['to-email']
-                 ,'Boost Transmitter Exception'
-                 ,'Please check the log.')
-    log.error('Returning 500; details: ' + str(e))
-    return {'status': 500}
 
 def compose_handler(redcap_env, project_id):
   '''This returns a function that only takes a request-shaped
