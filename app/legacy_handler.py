@@ -1,5 +1,6 @@
 import requests
 import traceback
+from functools import partial
 import kickshaws as ks
 from common import *
 import redcaplib as rc
