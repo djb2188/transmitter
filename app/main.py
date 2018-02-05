@@ -40,7 +40,7 @@ def main():
 
     # HemOnc DEV project (pid 3027) on REDCap prod server:
     ,'/prod3027': imux_handlers(
-                    legacy_handler.handle
+                    legacy_handler.compose_handler(get_study_config('hemonc').get('whitelist'))
                    ,hemonc_handler.compose_handler('prod', 3027))
 
   }
