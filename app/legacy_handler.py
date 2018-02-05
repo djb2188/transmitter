@@ -15,7 +15,7 @@ racie_legacy_url = 'http://localhost:80/index/'
 
 log = ks.create_logger(get_log_filepath(), __name__)
 
-def _handle(req, ip_whitelist):
+def _handle(ip_whitelist, req):
   '''Route to RACIE Legacy service. Assumes we're always POSTing.'''
   log.info('in')
   # Confirm requesting IP is in whitelist, or bail.
