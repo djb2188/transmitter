@@ -19,6 +19,12 @@ def _handle(redcap_env, project_id, req):
   '''This func is used by compose_handler below.
   Generally, you won't invoke this func directly.'''
   log.info('in')
+  study_cfg = get_study_config(study_tag)
+  # Confirm requesting IP is in whitelist, or bail.
+  if not ip_is_whitelisted(req['client_ip'], study_cfg.get('whitelist')):
+    log.info('For {} study, client_ip of {} is not whitelisted.'\
+             ''.format(study_tag, req.get('client_ip')))
+    return {'status': 403}
   log.info('This handler does not do anything yet.')
   log.info('out')
   return {'status': 200} 
