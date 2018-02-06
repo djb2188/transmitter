@@ -45,7 +45,7 @@ def _handle(redcap_env, project_id, req):
   # Ready to run workflows now.
   wf_chain = [redcap_intake_workflow.go
              ,aou_enrollment_workflow.go
-            # ,aou_withdrawal_workflow.go
+             ,aou_withdrawal_workflow.go
             ]
   try:
     rslt = run_workflow_chain(req, wf_chain)

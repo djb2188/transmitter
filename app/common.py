@@ -52,7 +52,7 @@ def imux_handlers(handler1, handler2):
   '''imux (aka inverse multiplex), takes two handlers,
   and returns a single handler. (Recall that a handler
   takes a single request and returns a single response.)'''
-  def imux_inner(req):
+  def imuxed_handle(req):
     log.info('in')
     rslt1 = handler1(req)
     print str(rslt1)
@@ -72,5 +72,5 @@ def imux_handlers(handler1, handler2):
       out_status = rslt2.get('status')
     log.info('out')
     return {'status': out_status}
-  return imux_inner 
+  return imuxed_handle
 
