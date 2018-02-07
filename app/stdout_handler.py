@@ -5,7 +5,7 @@ __all__ = ['handle']
 
 def handle(req):
   try:
-    pyld = rc.parse_det_payload(req.get('data')) 
+    pyld = rc.parse_det_payload(req.get('data','')) 
     print 'Request:'
     print str(req)
     print 'DET payload:'
