@@ -75,6 +75,12 @@ def calc_date_withdrawn(rcd):
   '''Currently, the presence of 'withdrawal_date' means withdrawal occurred.'''
   return rcd.get('withdrawal_date')
 
+def store_ticket_id(redcap_env, projectid, recordid, ticket_id):
+  attrname = 'obc-withdrawal-ticket-id'
+  rslt = eav.put(redcap_env, projectid, recordid, attrname, ticket_id)
+  log.info('Stored ticket id [{}] in db for record id [{}]'.format(ticket_id, recordid))
+  return rslt
+
 def create_jira_ticket(redcap_env, projectid, rcd):
   name_first = rcd['name_first']
   name_last = rcd['name_last']
@@ -162,7 +168,9 @@ def go(req):
     if should_create_jira_ticket(redcap_env, project_id, record):
       log.info('About to create withdrawal ticket.')
       rslt = create_jira_ticket(redcap_env, project_id, record)
-      log.info('Created ticket; will update flag in database.')
+      log.info('Created ticket; will insert new data into database (flag and ticket id).')
+      ticket_id = json.loads(rslt.get('payload')).get('key') 
+      store_ticket_id(redcap_env, project_id, record_id, ticket_id)
       set_jira_ticket_created_flag(redcap_env, project_id, record_id)
       log.info('{} flag set for {}'.format(eav_attrname_jira, record_id))
       req['new_withdrawal'] = 'yes'

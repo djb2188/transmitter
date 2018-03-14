@@ -100,6 +100,12 @@ def transition_to_begin_crest_reg(jira_spec, ticket_id):
       #raise Exception('transition {} failed for ticket {}'.format(trid, ticket_id)
   return success_status 
 
+def store_ticket_id(redcap_env, projectid, recordid, ticket_id):
+  attrname = 'obc-enrollment-ticket-id'
+  rslt = eav.put(redcap_env, projectid, recordid, attrname, ticket_id)
+  log.info('Stored ticket id [{}] in db for record id [{}]'.format(ticket_id, recordid))
+  return rslt
+
 def create_jira_ticket(redcap_env, projectid, rcd):
   '''Creates jira ticket, returns result. Also attaches the jira_spec
   data structure and env_tag to the result for subsequent functions to use.'''
@@ -243,7 +249,9 @@ def go(req):
     if should_create_jira_ticket(redcap_env, project_id, record):
       log.info('This is a new enrollment; will create Jira enrollment ticket.')
       rslt = create_jira_ticket(redcap_env, project_id, record)
-      log.info('Created ticket; will update flag in database.')
+      log.info('Created ticket; will insert new data into database (flag and ticket id).')
+      ticket_id = json.loads(rslt.get('payload')).get('key') 
+      store_ticket_id(redcap_env, project_id, record_id, ticket_id)
       set_jira_ticket_created_flag(redcap_env, project_id, record_id)
       log.info('{} flag set for {}'.format(eav_attrname_jira, record_id))
       req['new_enrollment'] = 'yes'
