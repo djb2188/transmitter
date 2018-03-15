@@ -47,7 +47,7 @@ def main():
   path_to_key = cfg['path-to-key']
   path_to_pem = cfg['path-to-pem']
   log.info('-----------------------------------------------------')
-  log.info('-----------STARTING BOOST ORCHESTRATOR---------------')
+  log.info('---------------STARTING TRANSMITTER------------------')
   metaphor.listen(routes, 2814, path_to_key, path_to_pem, None, logger=log)
   return 
 

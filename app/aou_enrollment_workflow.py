@@ -23,8 +23,7 @@ WHAT IT DOES
 Determine if a REDCap record indicates enrollment based on
 our rule(s); then create an Jira enrollment ticket if we
 haven't done so before (we use the database to keep track of
-this.) (Previously we sent an email; the old code for this
-is left in place, but might be removed later.)
+this.) 
 
 The OBC team will then transcribe the participant data into
 the CTMS (CREST) as a new enrollment.
@@ -174,14 +173,14 @@ def transition_jira_ticket(result):
   else: log.error(msg)
   # Transitioning feature pending.
   # Set assignee -- after transitions, assignee has changed.
-  #jira_user = aou_config.get(env_tag).get('jira-user')
-  #log.info('About to set ticket {} to assignee of {}.'\
-  #         ''.format(ticket_id, jira_user))
-  #assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
-  #if assignee_rslt.get('status') != 204:
-  #  raise Exception('Failed to set ticket {} to assignee {}.'\
-  #                  ''.format(ticket_id, jira_user))
-  #else: log.info('assignee update was a success.')
+  jira_user = aou_config.get(env_tag).get('jira-user')
+  log.info('About to set ticket {} to assignee of {}.'\
+           ''.format(ticket_id, jira_user))
+  assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
+  if assignee_rslt.get('status') != 204:
+    raise Exception('Failed to set ticket {} to assignee {}.'\
+                    ''.format(ticket_id, jira_user))
+  else: log.info('assignee update was a success.')
   try:
     ks.send_email(aou_config.get(env_tag).get('jira-ping-from-email')
         ,aou_config.get(env_tag).get('jira-ping-to-email')
@@ -255,9 +254,9 @@ def go(req):
       set_jira_ticket_created_flag(redcap_env, project_id, record_id)
       log.info('{} flag set for {}'.format(eav_attrname_jira, record_id))
       req['new_enrollment'] = 'yes'
-      log.info('Attempting transition on ticket.')
-      tran_rslt = transition_jira_ticket(rslt)
-      log.info('Outcome of transition: {}'.format(str(tran_rslt))) 
+      #log.info('Attempting transition on ticket.')
+      #tran_rslt = transition_jira_ticket(rslt)
+      #log.info('Outcome of transition: {}'.format(str(tran_rslt))) 
     else:
       log.info('This was not deemed a new enrollment. No action taken.')
       req['new_enrollment'] = 'no'

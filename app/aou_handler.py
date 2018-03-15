@@ -26,7 +26,7 @@ study_tag = 'aou'
 def _handle(redcap_env, project_id, req):
   '''This func is used by compose_handler below.
   Generally, you won't invoke this func directly.'''
-  log.info('Entered.')
+  log.info('=============== Entered. ==================')
   study_cfg = get_study_config('aou')
   # Confirm requesting IP is in whitelist, or bail.
   if not ip_is_whitelisted(req['client_ip'], study_cfg.get('whitelist')):
