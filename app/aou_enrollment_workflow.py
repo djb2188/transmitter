@@ -77,29 +77,9 @@ def set_jira_ticket_created_flag(redcap_env, projectid, recordid):
   rslt = eav.put(redcap_env, projectid, recordid, eav_attrname_jira, attrval)
   return rslt
 
-def transition_to_begin_crest_reg(jira_spec, ticket_id):
-  '''Transitions an OBC Enrollment ticket from "Open" status all the
-  way to "In Review (CREST)" status. Returns 204 (an HTTP status)
-  if all goes well.'''
-  # These are determined by using the following URL, which gives the
-  # available transitions for the ticket's current status:
-  #   GET /rest/api/2/issue/{issueIdOrKey}/transitions
-  transitions = ['61' #'Begin HRBAF Review'
-                ,'71' #'Begin Patient Review'
-                ,'81'] #'Begin CREST Registration'
-  success_status = 204 # this is the HTTP status Jira returns for trans success.
-  for trid in transitions:
-    rslt = jira.do_transition(jira_spec, ticket_id, trid)
-    msg = 'transition {} for ticket {}: {}'.format(trid, ticket_id, str(rslt))
-    if rslt.get('status') != success_status:
-      log.error(msg)
-      return rslt.get('status')
-    else:
-      log.info(msg)
-      #raise Exception('transition {} failed for ticket {}'.format(trid, ticket_id)
-  return success_status 
-
 def store_ticket_id(redcap_env, projectid, recordid, ticket_id):
+  '''Store the Jira ticket ID in the db; useful for enrollment
+  reconciliation later, etc.'''
   attrname = 'obc-enrollment-ticket-id'
   rslt = eav.put(redcap_env, projectid, recordid, attrname, ticket_id)
   log.info('Stored ticket id [{}] in db for record id [{}]'.format(ticket_id, recordid))
@@ -146,49 +126,7 @@ def create_jira_ticket(redcap_env, projectid, rcd):
   if result['status'] != 201:
     raise Exception(str(result))
   log.info('Created Jira enrollment ticket; details: {}'.format(result))
-  result['jira-spec'] = jira_spec
-  result['env-tag'] = env_tag
   return result
-
-def transition_jira_ticket(result):
-  '''Transition ticket from Open to Begin CREST Registration;
-  This is a higher-level function that in turn ultimately calls
-    transition_to_begin_crest_reg().
-  Arguments:
-    - result: the result from create_jira_ticket, as-is.
-  Returns transition result (straight from jiralib.do_transition)
-    ... or {status:'-1'} if we didn't try (e.g. ticket is not OBC, etc.)'''
-  if result['status'] != 201:
-    return {'status': -1}
-  ticket_id = json.loads(result.get('payload')).get('key')
-  # This transition is specific to the OBC Jira project.
-  if "OBC" not in ticket_id:
-    log.info('Will not transition; ticket is not an OBC ticket.')
-    return {'status': -1}
-  jira_spec = result.get('jira-spec') # should've been added by create_jira_ticket
-  env_tag = result.get('env-tag')
-  transition_rslt = transition_to_begin_crest_reg(jira_spec, ticket_id)
-  msg = 'ticket {} transition result: {}'.format(ticket_id, transition_rslt)
-  if transition_rslt == 204: log.info(msg)
-  else: log.error(msg)
-  # Transitioning feature pending.
-  # Set assignee -- after transitions, assignee has changed.
-  jira_user = aou_config.get(env_tag).get('jira-user')
-  log.info('About to set ticket {} to assignee of {}.'\
-           ''.format(ticket_id, jira_user))
-  assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
-  if assignee_rslt.get('status') != 204:
-    raise Exception('Failed to set ticket {} to assignee {}.'\
-                    ''.format(ticket_id, jira_user))
-  else: log.info('assignee update was a success.')
-  try:
-    ks.send_email(aou_config.get(env_tag).get('jira-ping-from-email')
-        ,aou_config.get(env_tag).get('jira-ping-to-email')
-        ,'jira enrollment transitions result'
-        ,str('ticket {} transition result: {}'.format(ticket_id, transition_rslt)))
-  except Exception, ex:
-    log.error('Attempting to send Jira ping email but failed: ' + str(ex))
-  return transition_rslt
 
 def should_create_jira_ticket(redcap_env, pid, rcd):
   '''Rules:
@@ -227,7 +165,6 @@ def go(req):
       o project_id        from redcap_aou_handler
       o det_payload       added by redcap_intake_workflow
       o record            added by redcap_intake_workflow 
-      o delta             added by redcap_intake_workflow
   This function returns this same request with an additional
   key-value pair:
       o new_enrollment    value of 'yes' or 'no'
@@ -254,16 +191,79 @@ def go(req):
       set_jira_ticket_created_flag(redcap_env, project_id, record_id)
       log.info('{} flag set for {}'.format(eav_attrname_jira, record_id))
       req['new_enrollment'] = 'yes'
-      #log.info('Attempting transition on ticket.')
-      #tran_rslt = transition_jira_ticket(rslt)
-      #log.info('Outcome of transition: {}'.format(str(tran_rslt))) 
     else:
       log.info('This was not deemed a new enrollment. No action taken.')
       req['new_enrollment'] = 'no'
   except Exception, ex:
-    #log.error(str(ex))
     log.exception(ex)
     raise ex
   log.info('Exiting.')
   return req
+
+#------------------------------------------------------------------------------
+# archived
+
+def __not_used__transition_to_begin_crest_reg(jira_spec, ticket_id):
+  '''Transitions an OBC Enrollment ticket from "Open" status all the
+  way to "In Review (CREST)" status. Returns 204 (an HTTP status)
+  if all goes well.'''
+  # These are determined by using the following URL, which gives the
+  # available transitions for the ticket's current status:
+  #   GET /rest/api/2/issue/{issueIdOrKey}/transitions
+  transitions = ['61' #'Begin HRBAF Review'
+                ,'71' #'Begin Patient Review'
+                ,'81'] #'Begin CREST Registration'
+  success_status = 204 # this is the HTTP status Jira returns for trans success.
+  for trid in transitions:
+    rslt = jira.do_transition(jira_spec, ticket_id, trid)
+    msg = 'transition {} for ticket {}: {}'.format(trid, ticket_id, str(rslt))
+    if rslt.get('status') != success_status:
+      log.error(msg)
+      return rslt.get('status')
+    else:
+      log.info(msg)
+      #raise Exception('transition {} failed for ticket {}'.format(trid, ticket_id)
+  return success_status 
+
+# TODO modify approach so that result arg does not need jira-spec
+# loaded into it.
+def __not_used__transition_jira_ticket(result):
+  '''Transition ticket from Open to Begin CREST Registration;
+  This is a higher-level function that in turn ultimately calls
+    transition_to_begin_crest_reg().
+  Arguments:
+    - result: the result from create_jira_ticket, with addl
+      items added: jira-spec, and env-tag.
+  Returns transition result (straight from jiralib.do_transition)
+    ... or {status:'-1'} if we didn't try (e.g. ticket is not OBC, etc.)'''
+  if result['status'] != 201:
+    return {'status': -1}
+  ticket_id = json.loads(result.get('payload')).get('key')
+  # This transition is specific to the OBC Jira project.
+  if "OBC" not in ticket_id:
+    log.info('Will not transition; ticket is not an OBC ticket.')
+    return {'status': -1}
+  jira_spec = result.get('jira-spec') # should've been added by create_jira_ticket
+  env_tag = result.get('env-tag')
+  transition_rslt = transition_to_begin_crest_reg(jira_spec, ticket_id)
+  msg = 'ticket {} transition result: {}'.format(ticket_id, transition_rslt)
+  if transition_rslt == 204: log.info(msg)
+  else: log.error(msg)
+  # Set assignee -- after transitions, assignee has changed.
+  jira_user = aou_config.get(env_tag).get('jira-user')
+  log.info('About to set ticket {} to assignee of {}.'\
+           ''.format(ticket_id, jira_user))
+  assignee_rslt = jira.set_assignee(jira_spec, ticket_id, jira_user)
+  if assignee_rslt.get('status') != 204:
+    raise Exception('Failed to set ticket {} to assignee {}.'\
+                    ''.format(ticket_id, jira_user))
+  else: log.info('assignee update was a success.')
+  try:
+    ks.send_email(aou_config.get(env_tag).get('jira-ping-from-email')
+        ,aou_config.get(env_tag).get('jira-ping-to-email')
+        ,'jira enrollment transitions result'
+        ,str('ticket {} transition result: {}'.format(ticket_id, transition_rslt)))
+  except Exception, ex:
+    log.error('Attempting to send Jira ping email but failed: ' + str(ex))
+  return transition_rslt
 
